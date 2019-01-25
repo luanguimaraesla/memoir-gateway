@@ -15,23 +15,25 @@
 package cmd
 
 import (
-	"fmt"
+        "log"
 
 	"github.com/spf13/cobra"
+        "github.com/luanguimaraesla/memoir-gateway/prometheus"
 )
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Run memoir prometheus matrics gateway server",
+	Long: `Metrics-gateway exports listen to your gRPC to
+create and expose custom timeseries using the
+Open Metrics Prometheus format.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("run called")
+                addr, err := cmd.Flags().GetString("bind")
+                if err != nil {
+                        log.Panic("Can't start server on", addr)
+                }
+		prometheus.RunPrometheusServer(addr)
 	},
 }
 
@@ -47,4 +49,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+        runCmd.Flags().StringP("bind", "b", "bind", "bind address")
 }
