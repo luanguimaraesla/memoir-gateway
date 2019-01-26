@@ -19,6 +19,7 @@ import (
 
 	"github.com/spf13/cobra"
         "github.com/luanguimaraesla/memoir-gateway/prometheus"
+        "github.com/luanguimaraesla/memoir-gateway/collector"
 )
 
 // runCmd represents the run command
@@ -29,11 +30,20 @@ var runCmd = &cobra.Command{
 create and expose custom timeseries using the
 Open Metrics Prometheus format.`,
 	Run: func(cmd *cobra.Command, args []string) {
-                addr, err := cmd.Flags().GetString("bind")
+                prometheus_addr, err := cmd.Flags().GetString("prometheus")
                 if err != nil {
-                        log.Panic("Can't start server on", addr)
+                        log.Panic("Can't start http server on", prometheus_addr)
                 }
-		prometheus.RunPrometheusServer(addr)
+
+                grpc_addr, err := cmd.Flags().GetString("collector")
+                if err != nil {
+                        log.Panic("Can't start tcp server on", grpc_addr)
+                }
+                go func() {
+                        prometheus.RunPrometheusServer(prometheus_addr)
+                }()
+
+                collector.RunCollectorServer(grpc_addr)
 	},
 }
 
@@ -49,5 +59,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-        runCmd.Flags().StringP("bind", "b", "bind", "bind address")
+        runCmd.Flags().StringP("prometheus", "p", ":9090", "prometheus bind address")
+        runCmd.Flags().StringP("collector", "c", ":5000", "grpc bind address")
 }
