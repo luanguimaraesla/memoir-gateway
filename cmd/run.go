@@ -18,7 +18,7 @@ import (
         "log"
 
 	"github.com/spf13/cobra"
-        "github.com/luanguimaraesla/memoir-gateway/prometheus"
+        "github.com/luanguimaraesla/memoir-gateway/exporter"
         "github.com/luanguimaraesla/memoir-gateway/collector"
 )
 
@@ -40,7 +40,7 @@ Open Metrics Prometheus format.`,
                         log.Panic("Can't start tcp server on", grpc_addr)
                 }
                 go func() {
-                        prometheus.RunPrometheusServer(prometheus_addr)
+                        exporter.RunPrometheusServer(prometheus_addr)
                 }()
 
                 collector.RunCollectorServer(grpc_addr)

@@ -8,14 +8,15 @@ import (
 
         "google.golang.org/grpc"
 
-        pb "github.com/luanguimaraesla/memoir-gateway/metricsgateway"
+        pb "github.com/luanguimaraesla/memoir-gateway/metrics"
+        "github.com/luanguimaraesla/memoir-gateway/exporter"
 )
 
 type collectorServer struct {
         measures []*pb.Measure
 }
 
-func (p *collectorServer) AddMeasure(stream pb.MetricsGateway_AddMeasureServer) error {
+func (p *collectorServer) AddMeasure(stream pb.Metrics_AddMeasureServer) error {
         var measureCount int32
         startTime := time.Now()
         for {
@@ -33,7 +34,7 @@ func (p *collectorServer) AddMeasure(stream pb.MetricsGateway_AddMeasureServer) 
                 }
                 measureCount++
                 log.Printf("Received metric: {Name: %s, Value: %f}", measure.Name, measure.Value)
-
+                exporter.AddMetric(measure)
         }
 }
 
@@ -45,7 +46,7 @@ func RunCollectorServer(addr string) {
         log.Printf("listening gRPC on %s", addr)
 
         grpcServer := grpc.NewServer()
-        pb.RegisterMetricsGatewayServer(grpcServer, &collectorServer{})
+        pb.RegisterMetricsServer(grpcServer, &collectorServer{})
         if err := grpcServer.Serve(lis); err != nil {
                 log.Fatalf("failed to serve: %v", err)
         }
